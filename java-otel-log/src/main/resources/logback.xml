@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+    <!-- log file for elastic filebeat/agent ingest -->
+    <appender name="elastic-file" class="ch.qos.logback.core.FileAppender">
+        <file>logs/elastic.log</file>
+        <encoder class="co.elastic.logging.logback.EcsEncoder">
+            <!-- set serviceName from env var -->
+            <serviceName>${OTEL_SERVICE_NAME}</serviceName>
+            <serviceVersion>${OTEL_SERVICE_VERSION}</serviceVersion>
+            <serviceEnvironment>${OTEL_SERVICE_ENVIRONMENT}</serviceEnvironment>
+            <!-- include src origin info -->
+            <includeOrigin>true</includeOrigin>
+        </encoder>
+    </appender>
+
+    <!-- add traceid, spanid, and baggage as MDC context -->
+    <appender name="elastic-log"
+        class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
+        <appender-ref ref="elastic-file" />
+        <traceIdKey>trace.id</traceIdKey>
+        <spanIdKey>span.id</spanIdKey>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="elastic-log" />
+    </root>
+</configuration>
